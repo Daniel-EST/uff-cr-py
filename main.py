@@ -1,5 +1,8 @@
 import requests
 import os
+import csv
+
+from bs4 import BeautifulSoup
 
 ID_UFF = 'https://app.uff.br/iduff/login.uff'
 HISTORY = 'https://app.uff.br/iduff/privado/declaracoes/private/historico.uff?conversationPropagation=none'
@@ -21,9 +24,23 @@ payload = {
     'javax.faces.ViewState': 'j_id1'
 }
 
-sms_code = requests.post(ID_UFF,
-                         data=payload,
-                         headers=HEADER)
+requests.post(ID_UFF, data=payload, headers=HEADER)
 
-print(requests.get(HISTORY,
-                   headers=HEADER).text)
+history = requests.get(HISTORY, headers=HEADER).text
+
+soup = BeautifulSoup(history, 'html.parser')
+
+html_selection = soup.select("#historico\:tblDisciplinasHistorico")[0]
+
+columns = html_selection.select('span')
+lines = html_selection.find_all('tr')
+
+with open('grades.csv', mode='w', newline='') as file:
+    file_writer = csv.writer(file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+    file_writer.writerow([column.text for column in columns])
+    for line in lines:
+        line_elements = []
+        for element in line.find_all('td'):
+            line_elements.append(element.text.strip())
+        if len(line_elements) != 0:
+            file_writer.writerow(line_elements)

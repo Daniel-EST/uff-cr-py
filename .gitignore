@@ -131,4 +131,6 @@ dmypy.json
 # Tempfiles
 *temp*
 
+*.csv
+
 # End of https://www.gitignore.io/api/python
