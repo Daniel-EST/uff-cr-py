@@ -35,6 +35,8 @@ html_selection = soup.select("#historico\:tblDisciplinasHistorico")[0]
 columns = html_selection.select('span')
 lines = html_selection.find_all('tr')
 
+weights = []
+weighted_scores = []
 with open('grades.csv', mode='w', newline='') as file:
     file_writer = csv.writer(file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
     file_writer.writerow([column.text for column in columns])
@@ -43,4 +45,17 @@ with open('grades.csv', mode='w', newline='') as file:
         for element in line.find_all('td'):
             line_elements.append(element.text.strip())
         if len(line_elements) != 0:
+            score = float(line_elements[4])
+            weight = int(line_elements[7])
+            if score < 6:
+                vs = float(line_elements[5])
+                score = (score + vs)/2
+                
+            weights.append(weight)
+            weighted_scores.append(score * weight)
+            
             file_writer.writerow(line_elements)
+            
+    cr = sum(weighted_scores)/sum(weights)
+    file_writer.writerow([])
+    file_writer.writerow(["CR", cr])
